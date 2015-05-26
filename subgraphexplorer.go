@@ -6,6 +6,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"container/list"
 	"fmt"
 	"log"
@@ -14,10 +15,15 @@ import (
 	"strings"
 )
 
+// Profiling tools
+// import (
+//     "net/http"
+//     _ "net/http/pprof"
+// )
+
 /* Data types */
 type graph struct {
 	adjacencyMap  adjacencyMap
-	nodesToLabels intToIntMap
 	labelsToNodes intToIntMap
 }
 type adjacencyMap map[uint32]*list.List
@@ -25,41 +31,44 @@ type intToIntMap map[uint32]uint32
 
 /* String() interfaces */
 func (g adjacencyMap) String() string {
-	var s string = "{\n\t"
+	var s bytes.Buffer
 
+	s.WriteString("{\n")
 	for key, value := range g {
-		s += fmt.Sprintf("%d: [", key)
+		s.WriteString(fmt.Sprintf("\t%d: [", key))
 
 		for e := value.Front(); e != nil; e = e.Next() {
-			s += fmt.Sprintf("%d, ", e.Value)
+			if e.Next() != nil {
+				s.WriteString(fmt.Sprintf("%d, ", e.Value))
+			} else {
+				s.WriteString(fmt.Sprintf("%d", e.Value))
+			}
 		}
 
-		s = strings.TrimRight(s, ", ")
-		s += "],\n\t"
+		// s = strings.TrimRight(s, ", ")
+		s.WriteString("],\n")
 	}
-	s = strings.TrimRight(s, ",\n\t")
-	s += "\n}"
+	// s = strings.TrimRight(s, ",\n\t")
+	s.WriteString("}")
 
-	return s
+	return s.String()
 }
 
 func (m intToIntMap) String() string {
-	var s string = "{\n"
+	var s bytes.Buffer
 
+	s.WriteString("{\n")
 	for k, v := range m {
-		s += fmt.Sprintf("\t%d -> %d,\n", k, v)
+		s.WriteString(fmt.Sprintf("\t%d -> %d,\n", k, v))
 	}
-	s = strings.TrimRight(s, ",\n")
-	s += "\n}"
+	s.WriteString("}")
 
-	return s
+	return s.String()
 }
 
 /* Open the graph file for reading and build the structure. */
 func readInputFile(path string) *graph {
 	var (
-		u             uint32
-		v             uint32
 		index         uint32       = 0
 		adjacencyMap  adjacencyMap = make(adjacencyMap)
 		nodesToLabels intToIntMap  = make(intToIntMap)
@@ -88,7 +97,7 @@ func readInputFile(path string) *graph {
 			log.Fatal(err)
 			return nil
 		}
-		u = uint32(u_64)
+		u := uint32(u_64)
 		u_index, ok := nodesToLabels[u]
 		if !ok {
 			nodesToLabels[u] = index
@@ -102,7 +111,7 @@ func readInputFile(path string) *graph {
 			log.Fatal(err)
 			return nil
 		}
-		v = uint32(v_64)
+		v := uint32(v_64)
 		v_index, ok := nodesToLabels[v]
 		if !ok {
 			nodesToLabels[v] = index
@@ -126,7 +135,7 @@ func readInputFile(path string) *graph {
 		l.PushBack(u_index)
 	}
 
-	return &graph{adjacencyMap, nodesToLabels, labelsToNodes}
+	return &graph{adjacencyMap, nodesToLabels}
 }
 
 func main() {
@@ -137,6 +146,9 @@ func main() {
 	}
 
 	fmt.Println(g.adjacencyMap)
-	fmt.Println(g.nodesToLabels)
 	fmt.Println(g.labelsToNodes)
+
+	// Enable profiling
+	// log.Println(http.ListenAndServe("localhost:6060", nil))
+
 }
