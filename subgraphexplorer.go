@@ -6,20 +6,21 @@ package main
 
 import (
 	"bufio"
-	"container/list"
 	"fmt"
-	"github.com/aldur/subgraphexplorer/types"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/aldur/subgraphexplorer/types"
 )
 
 // Profiling tools
-// import (
-//     "net/http"
-//     _ "net/http/pprof"
-// )
+import (
+	"net/http"
+	_ "net/http/pprof"
+)
 
 /* Open the graph file for reading and build the structure. */
 func readInputFile(path string) *types.Graph {
@@ -75,19 +76,8 @@ func readInputFile(path string) *types.Graph {
 			index += 1
 		}
 
-		l, ok := adjacencyMap[u_index]
-		if !ok {
-			l = list.New()
-			adjacencyMap[u_index] = l
-		}
-		l.PushBack(v_index)
-
-		l, ok = adjacencyMap[v_index]
-		if !ok {
-			l = list.New()
-			adjacencyMap[v_index] = l
-		}
-		l.PushBack(u_index)
+		adjacencyMap[u_index] = append(adjacencyMap[u_index], v_index)
+		adjacencyMap[v_index] = append(adjacencyMap[v_index], u_index)
 	}
 
 	return &types.Graph{adjacencyMap, nodesToLabels}
@@ -99,15 +89,18 @@ func main() {
 		return
 	}
 
+	start := time.Now()
 	inputFile := os.Args[1]
 	g := readInputFile(inputFile)
 	if g == nil {
 		log.Panicln("Cannot parse input file. Exiting...")
 	}
+	elapsed := time.Since(start)
+	log.Printf("Graph input reading took %s", elapsed)
 
-	fmt.Println(g.AdjacencyMap)
-	fmt.Println(g.LabelsToNodes)
+	// fmt.Println(g.AdjacencyMap)
+	// fmt.Println(g.LabelsToNodes)
 
 	// Enable profiling
-	// log.Println(http.ListenAndServe("localhost:6060", nil))
+	log.Println(http.ListenAndServe("localhost:6060", nil))
 }

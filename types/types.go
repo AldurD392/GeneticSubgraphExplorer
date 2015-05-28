@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"container/list"
 	"fmt"
 )
 
@@ -11,7 +10,7 @@ type Graph struct {
 	AdjacencyMap  AdjacencyMap
 	LabelsToNodes IntToIntMap
 }
-type AdjacencyMap map[uint32]*list.List
+type AdjacencyMap map[uint32][]uint32
 type IntToIntMap map[uint32]uint32
 
 /* String() interfaces */
@@ -20,20 +19,8 @@ func (g AdjacencyMap) String() string {
 
 	s.WriteString("{\n")
 	for key, value := range g {
-		s.WriteString(fmt.Sprintf("\t%d: [", key))
-
-		for e := value.Front(); e != nil; e = e.Next() {
-			if e.Next() != nil {
-				s.WriteString(fmt.Sprintf("%d, ", e.Value))
-			} else {
-				s.WriteString(fmt.Sprintf("%d", e.Value))
-			}
-		}
-
-		// s = strings.TrimRight(s, ", ")
-		s.WriteString("],\n")
+		s.WriteString(fmt.Sprintf("\t%d: %s", key, value))
 	}
-	// s = strings.TrimRight(s, ",\n\t")
 	s.WriteString("}")
 
 	return s.String()
