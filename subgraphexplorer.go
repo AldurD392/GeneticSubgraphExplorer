@@ -17,18 +17,17 @@ import (
 )
 
 // Profiling tools
-import (
-	"net/http"
-	_ "net/http/pprof"
-)
+// import (
+// "net/http"
+// _ "net/http/pprof"
+// )
 
 /* Open the graph file for reading and build the structure. */
 func readInputFile(path string) *types.Graph {
 	var (
-		index         uint32             = 0
-		adjacencyMap  types.AdjacencyMap = make(types.AdjacencyMap)
-		nodesToLabels types.IntToIntMap  = make(types.IntToIntMap)
-		labelsToNodes types.IntToIntMap  = make(types.IntToIntMap)
+		adjacencyMap types.AdjacencyMap = make(types.AdjacencyMap)
+		labels       types.UIntSlice
+		labeledNodes map[uint32]uint32 = make(map[uint32]uint32)
 	)
 
 	inputFile, err := os.Open(path)
@@ -48,39 +47,40 @@ func readInputFile(path string) *types.Graph {
 
 		edge := strings.Fields(line)
 
+		/* Parse u and v from the string */
 		u_64, err := strconv.ParseUint(edge[0], 10, 32)
 		if err != nil {
 			log.Fatal(err)
 			return nil
 		}
 		u := uint32(u_64)
-		u_index, ok := nodesToLabels[u]
-		if !ok {
-			nodesToLabels[u] = index
-			labelsToNodes[index] = u
-			u_index = index
-			index += 1
-		}
-
 		v_64, err := strconv.ParseUint(edge[1], 10, 32)
 		if err != nil {
 			log.Fatal(err)
 			return nil
 		}
 		v := uint32(v_64)
-		v_index, ok := nodesToLabels[v]
+
+		// Check if we need to label them
+		u_index, ok := labeledNodes[u]
 		if !ok {
-			nodesToLabels[v] = index
-			labelsToNodes[index] = v
-			v_index = index
-			index += 1
+			u_index = uint32(len(labels))
+			labeledNodes[u] = u_index
+			labels = append(labels, u)
+		}
+
+		v_index, ok := labeledNodes[v]
+		if !ok {
+			v_index = uint32(len(labels))
+			labeledNodes[v] = v_index
+			labels = append(labels, v)
 		}
 
 		adjacencyMap[u_index] = append(adjacencyMap[u_index], v_index)
 		adjacencyMap[v_index] = append(adjacencyMap[v_index], u_index)
 	}
 
-	return &types.Graph{adjacencyMap, nodesToLabels}
+	return &types.Graph{adjacencyMap, labels}
 }
 
 func main() {
@@ -98,9 +98,9 @@ func main() {
 	elapsed := time.Since(start)
 	log.Printf("Graph input reading took %s", elapsed)
 
-	// fmt.Println(g.AdjacencyMap)
-	// fmt.Println(g.LabelsToNodes)
+	fmt.Println(g.AdjacencyMap)
+	fmt.Println(g.Labels)
 
 	// Enable profiling
-	log.Println(http.ListenAndServe("localhost:6060", nil))
+	// log.Println(http.ListenAndServe("localhost:6060", nil))
 }

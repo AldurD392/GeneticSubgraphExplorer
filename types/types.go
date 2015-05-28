@@ -3,15 +3,16 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"strings"
 )
 
 /* Data types */
 type Graph struct {
-	AdjacencyMap  AdjacencyMap
-	LabelsToNodes IntToIntMap
+	AdjacencyMap AdjacencyMap
+	Labels       UIntSlice // Our i-th node was originally Labels[i]
 }
-type AdjacencyMap map[uint32][]uint32
-type IntToIntMap map[uint32]uint32
+type AdjacencyMap map[uint32]UIntSlice
+type UIntSlice []uint32
 
 /* String() interfaces */
 func (g AdjacencyMap) String() string {
@@ -19,21 +20,20 @@ func (g AdjacencyMap) String() string {
 
 	s.WriteString("{\n")
 	for key, value := range g {
-		s.WriteString(fmt.Sprintf("\t%d: %s", key, value))
+		s.WriteString(fmt.Sprintf("\t%d: %s,\n", key, value))
 	}
 	s.WriteString("}")
 
 	return s.String()
 }
 
-func (m IntToIntMap) String() string {
+func (labels UIntSlice) String() string {
 	var s bytes.Buffer
 
-	s.WriteString("{\n")
-	for k, v := range m {
-		s.WriteString(fmt.Sprintf("\t%d -> %d,\n", k, v))
+	s.WriteString("[")
+	for n := range labels {
+		s.WriteString(fmt.Sprintf("%d, ", n))
 	}
-	s.WriteString("}")
 
-	return s.String()
+	return strings.TrimRight(s.String(), ", ") + "]"
 }
