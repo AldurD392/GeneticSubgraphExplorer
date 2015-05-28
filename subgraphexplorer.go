@@ -1,14 +1,14 @@
 /*
-Package subgraphexplorer
+Package main
 Genetic algorithm to find the smallest dense-enough subgraph.
 */
 package main
 
 import (
 	"bufio"
-	"bytes"
 	"container/list"
 	"fmt"
+	"github.com/aldur/subgraphexplorer/types"
 	"log"
 	"os"
 	"strconv"
@@ -21,58 +21,13 @@ import (
 //     _ "net/http/pprof"
 // )
 
-/* Data types */
-type graph struct {
-	adjacencyMap  adjacencyMap
-	labelsToNodes intToIntMap
-}
-type adjacencyMap map[uint32]*list.List
-type intToIntMap map[uint32]uint32
-
-/* String() interfaces */
-func (g adjacencyMap) String() string {
-	var s bytes.Buffer
-
-	s.WriteString("{\n")
-	for key, value := range g {
-		s.WriteString(fmt.Sprintf("\t%d: [", key))
-
-		for e := value.Front(); e != nil; e = e.Next() {
-			if e.Next() != nil {
-				s.WriteString(fmt.Sprintf("%d, ", e.Value))
-			} else {
-				s.WriteString(fmt.Sprintf("%d", e.Value))
-			}
-		}
-
-		// s = strings.TrimRight(s, ", ")
-		s.WriteString("],\n")
-	}
-	// s = strings.TrimRight(s, ",\n\t")
-	s.WriteString("}")
-
-	return s.String()
-}
-
-func (m intToIntMap) String() string {
-	var s bytes.Buffer
-
-	s.WriteString("{\n")
-	for k, v := range m {
-		s.WriteString(fmt.Sprintf("\t%d -> %d,\n", k, v))
-	}
-	s.WriteString("}")
-
-	return s.String()
-}
-
 /* Open the graph file for reading and build the structure. */
-func readInputFile(path string) *graph {
+func readInputFile(path string) *types.Graph {
 	var (
-		index         uint32       = 0
-		adjacencyMap  adjacencyMap = make(adjacencyMap)
-		nodesToLabels intToIntMap  = make(intToIntMap)
-		labelsToNodes intToIntMap  = make(intToIntMap)
+		index         uint32             = 0
+		adjacencyMap  types.AdjacencyMap = make(types.AdjacencyMap)
+		nodesToLabels types.IntToIntMap  = make(types.IntToIntMap)
+		labelsToNodes types.IntToIntMap  = make(types.IntToIntMap)
 	)
 
 	inputFile, err := os.Open(path)
@@ -135,20 +90,24 @@ func readInputFile(path string) *graph {
 		l.PushBack(u_index)
 	}
 
-	return &graph{adjacencyMap, nodesToLabels}
+	return &types.Graph{adjacencyMap, nodesToLabels}
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: subgraphexplorer INPUT_FILE")
+		return
+	}
+
 	inputFile := os.Args[1]
 	g := readInputFile(inputFile)
 	if g == nil {
 		log.Panicln("Cannot parse input file. Exiting...")
 	}
 
-	fmt.Println(g.adjacencyMap)
-	fmt.Println(g.labelsToNodes)
+	fmt.Println(g.AdjacencyMap)
+	fmt.Println(g.LabelsToNodes)
 
 	// Enable profiling
 	// log.Println(http.ListenAndServe("localhost:6060", nil))
-
 }
