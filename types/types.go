@@ -31,7 +31,7 @@ func (labels UIntSlice) String() string {
 	var s bytes.Buffer
 
 	s.WriteString("[")
-	for n := range labels {
+	for _, n := range labels {
 		s.WriteString(fmt.Sprintf("%d, ", n))
 	}
 
