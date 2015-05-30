@@ -1,4 +1,4 @@
-package types
+package graph
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-/* Data types */
 type Graph struct {
 	AdjacencyMap AdjacencyMap
 	Labels       UIntSlice // Our i-th node was originally Labels[i]
@@ -14,7 +13,6 @@ type Graph struct {
 type AdjacencyMap map[uint32]UIntSlice
 type UIntSlice []uint32
 
-/* String() interfaces */
 func (g AdjacencyMap) String() string {
 	var s bytes.Buffer
 
